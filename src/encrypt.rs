@@ -8,3 +8,10 @@ struct EncryptionData {
     inner: HashMap<String, String>,
 }
 
+impl EncryptionData{
+    pub fn new() -> EncryptionData{
+        return Self{
+            inner: todo!(),
+        }
+    }
+}
