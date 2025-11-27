@@ -9,3 +9,7 @@ borsh = { version = "1.5.7", features = ["derive"] }
 eframe = "0.33.2"
 env_logger = "0.11.8"
 rfd = "0.15.4"
+image = "0.25"
+
+[build-dependencies]
+winresource = "0.1.17"
