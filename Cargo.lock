@@ -1530,11 +1530,13 @@ dependencies = [
 name = "file_encryption_tool"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "borsh",
  "cocoon",
  "eframe",
  "env_logger",
  "image",
+ "rand 0.8.5",
  "rfd",
  "winresource",
 ]
