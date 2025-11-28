@@ -83,6 +83,7 @@ const CHROME_BLUE: egui::Color32 = egui::Color32::from_rgb(176, 196, 222); // Cl
 struct RustProof {
     dropped_files: Vec<egui::DroppedFile>,
     picked_path: Option<String>,
+    passkey: String,
 }
 
 fn read_file_as_bytes(path: &str) -> Option<Vec<u8>> {
@@ -122,54 +123,96 @@ impl eframe::App for RustProof {
             ui.separator();
             ui.add_space(8.0);
             ui.horizontal(|ui| {
-                if let Some(picked_path) = &self.picked_path {
-                    horzontal_label(ui, "File: ", picked_path, 400.0);
-                } else {
-                    horzontal_label(ui, "File: ", &String::from("<None>"), 400.0);
-                }
-                if ui.button("Open file…").clicked()
-                    && let Some(path) = rfd::FileDialog::new().pick_file()
-                {
-                    self.picked_path = Some(path.display().to_string());
-                }
-            });
+                let width = ui.available_width();
+                let file_label_width = 60.0;
+                let button_width = 100.0;
+                let filename_width = width - file_label_width - button_width - 10.0;
+
+            ui.label("File:");
+
+        
+if let Some(picked_path) = &self.picked_path {
+    let display_path = if picked_path.len() > 30 {
+        let start = &picked_path[..10]; 
+        let end = &picked_path[picked_path.len()-15..];
+        format!("{}…{}", start, end)
+    } else {
+        picked_path.clone()
+    };
+
+    ui.add_sized(
+        [filename_width, 20.0],
+        egui::Label::new(egui::RichText::new(display_path).monospace()),
+    );
+} else {
+    ui.add_sized(
+        [filename_width, 20.0],
+        egui::Label::new(egui::RichText::new("<None>").monospace()),
+    );
+}
+            ui.add_space(10.0);
+
+        
+        if ui.add_sized([button_width, 30.0], egui::Button::new("Open file…")).clicked()
+            && let Some(path) = rfd::FileDialog::new().pick_file()
+        {
+            self.picked_path = Some(path.display().to_string());
+        }
+    });
             ui.add_space(8.0);
-            ui.horizontal(|ui| {
-                let encrypt_btn = egui::Button::new(
-                    egui::RichText::new("🛡 Encrypt (Protect)")
-                        .color(egui::Color32::from_rgb(40, 40, 50))
-                        .strong()
-                ).fill(SILVER_SHINE);
-                
-                if ui.add(encrypt_btn).clicked()
-                    && let Some(path) = &self.picked_path
-                {
-                    if let Some(file_bytes) = read_file_as_bytes(path) {
-                        // encrypt(file_bytes);
-                    } else {
-                        ui.label("Error reading file");
-                    }
-                }
-                
-                ui.add_space(10.0);
-                
-                let decrypt_btn = egui::Button::new(
-                    egui::RichText::new("🔓 Decrypt (Restore)")
-                        .color(egui::Color32::from_rgb(40, 40, 50))
-                        .strong()
-                ).fill(RUST_BROWN);
-                
-                if ui.add(decrypt_btn).clicked()
-                    && let Some(path) = &self.picked_path
-                {
-                    if let Some(file_bytes) = read_file_as_bytes(path) {
-                        // decrypt(file_bytes);
-                    } else {
-                        ui.label("Error reading file");
-                    }
-                }
-            });
-        });
+
+                ui.horizontal(|ui| {
+        let width = ui.available_width();
+        let label_width = 80.0;
+        let textbox_width = width - label_width;
+
+        ui.label("Passkey:");
+        ui.add_sized([textbox_width, 30.0], egui::TextEdit::singleline(&mut self.passkey));
+    });
+
+    ui.add_space(10.0);
+  ui.horizontal(|ui| {
+        let width = ui.available_width();
+        let spacing = 10.0; // spacing between buttons
+        let btn_width = (width - spacing * 2.0) / 2.0; // equal width for both buttons
+
+        // Encrypt button
+        let encrypt_btn = egui::Button::new(
+            egui::RichText::new("🛡 Encrypt (Protect)")
+                .color(egui::Color32::from_rgb(40, 40, 50))
+                .strong()
+        ).fill(SILVER_SHINE);
+
+        if ui.add_sized([btn_width, 40.0], encrypt_btn).clicked()
+            && let Some(path) = &self.picked_path
+        {
+            if let Some(file_bytes) = read_file_as_bytes(path) {
+                // encrypt(file_bytes);
+            } else {
+                ui.label("Error reading file");
+            }
+        }
+
+        ui.add_space(spacing); // spacing between buttons
+
+        // Decrypt button
+        let decrypt_btn = egui::Button::new(
+            egui::RichText::new("🔓 Decrypt (Restore)")
+                .color(egui::Color32::from_rgb(40, 40, 50))
+                .strong()
+        ).fill(RUST_BROWN);
+
+        if ui.add_sized([btn_width, 40.0], decrypt_btn).clicked()
+            && let Some(path) = &self.picked_path
+        {
+            if let Some(file_bytes) = read_file_as_bytes(path) {
+                // decrypt(file_bytes);
+            } else {
+                ui.label("Error reading file");
+            }
+        }
+    });
+});
 
         preview_files_being_dropped(ctx);
 
