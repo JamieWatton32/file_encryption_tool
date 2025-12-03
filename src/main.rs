@@ -1,8 +1,8 @@
 mod encrypt;
 
+use crate::encrypt::{decrypt, encrypt};
 use eframe::egui;
 use std::fs;
-use crate::encrypt::{decrypt, encrypt};
 
 fn main() {
     env_logger::init();
@@ -11,7 +11,7 @@ fn main() {
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([440.0, 240.0])
+            .with_inner_size([720.0, 480.0])
             .with_drag_and_drop(true)
             .with_icon(icon_data),
         ..Default::default()
@@ -102,12 +102,6 @@ fn read_file_as_bytes(path: &str) -> Option<Vec<u8>> {
     }
 }
 
-fn horizontal_label(ui: &mut egui::Ui, static_label: &str, dynamic_label: &String, max_width: f32) {
-    ui.horizontal(|ui| {
-        ui.label(static_label);
-        ui.monospace(dynamic_label);
-    });
-}
 impl eframe::App for RustProof {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -197,24 +191,58 @@ impl eframe::App for RustProof {
                     && let Some(path) = &self.picked_path
                 {
                     if let Some(file_bytes) = read_file_as_bytes(path) {
-                       match encrypt(&file_bytes, self.passkey.as_str()){
-                           Ok(_) =>{
-                               self.success = true;
-                               ui.label("File has been encrypted to encrypted.cocoon");
-                           },
-                            Err(_) =>{
-                                self.success = false;
-                                ui.label("Error occurred when encrypting contents. Please try again.");
+                        match encrypt(None, &file_bytes, self.passkey.as_str()) {
+                            Ok(_) => {
+                                self.success = true;
+                                ui.label("File has been encrypted to encrypted.cocoon");
                             }
-                       }
-
+                            Err(_) => {
+                                self.success = false;
+                                ui.label(
+                                    "Error occurred when encrypting contents. Please try again.",
+                                );
+                            }
+                        }
                     } else {
                         ui.label("Error reading file");
                     }
                 }
 
-                ui.add_space(spacing); // spacing between buttons
+                let inline_encrypt_btn = egui::Button::new(
+                    egui::RichText::new("🛡 Encrypt (Overwrite)")
+                        .color(egui::Color32::from_rgb(40, 40, 50))
+                        .strong(),
+                )
+                .fill(SILVER_SHINE);
 
+                if ui
+                    .add_sized([btn_width, 40.0], inline_encrypt_btn)
+                    .clicked()
+                    && let Some(path) = &self.picked_path
+                {
+                    if let Some(mut file_bytes) = read_file_as_bytes(path) {
+                        match encrypt(Some(path), &mut file_bytes, self.passkey.as_str()) {
+                            Ok(_) => {
+                                self.success = true;
+                                ui.label("File has been encrypted to encrypted.cocoon");
+                            }
+                            Err(_) => {
+                                self.success = false;
+                                ui.label(
+                                    "Error occurred when encrypting contents. Please try again.",
+                                );
+                            }
+                        }
+                    } else {
+                        ui.label("Error reading file");
+                    }
+                }
+            });
+            ui.add_space(10.0);
+            ui.horizontal(|ui| {
+                let width = ui.available_width();
+                let spacing = 10.0; // spacing between buttons
+                let btn_width = (width - spacing * 2.0) / 2.0; // equal width for both buttons
                 // Decrypt button
                 let decrypt_btn = egui::Button::new(
                     egui::RichText::new("🔓 Decrypt (Restore)")
@@ -227,12 +255,43 @@ impl eframe::App for RustProof {
                     && let Some(path) = &self.picked_path
                 {
                     if let Some(file_bytes) = read_file_as_bytes(path) {
-                        match decrypt(&file_bytes, self.passkey.as_str()) {
+                        match decrypt(None, &file_bytes, self.passkey.as_str()) {
                             Ok(_) => {
                                 self.success = true;
-                            },
+                            }
                             Err(_) => {
-                                ui.label("Error occurred when decrypting contents. Please try again.");
+                                ui.label(
+                                    "Error occurred when decrypting contents. Please try again.",
+                                );
+                                self.success = false;
+                            }
+                        }
+                    } else {
+                        ui.label("Error reading file");
+                    }
+                }
+
+                let inline_decrypt_btn = egui::Button::new(
+                    egui::RichText::new("🛡 Decrypt (Inplace)")
+                        .color(egui::Color32::from_rgb(40, 40, 50))
+                        .strong(),
+                )
+                .fill(RUST_BROWN);
+
+                if ui
+                    .add_sized([btn_width, 40.0], inline_decrypt_btn)
+                    .clicked()
+                    && let Some(path) = &self.picked_path
+                {
+                    if let Some(file_bytes) = read_file_as_bytes(path) {
+                        match decrypt(Some(path), &file_bytes, self.passkey.as_str()) {
+                            Ok(_) => {
+                                self.success = true;
+                            }
+                            Err(_) => {
+                                ui.label(
+                                    "Error occurred when decrypting contents. Please try again.",
+                                );
                                 self.success = false;
                             }
                         }
@@ -241,11 +300,11 @@ impl eframe::App for RustProof {
                     }
                 }
             });
-            if(self.success){
+
+            if self.success {
                 ui.label("Success");
             }
         });
-
 
         preview_files_being_dropped(ctx);
 
