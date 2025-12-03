@@ -82,7 +82,6 @@ fn setup_custom_theme(ctx: &egui::Context) {
 const RUST_ORANGE: egui::Color32 = egui::Color32::from_rgb(183, 65, 14); // Rust/oxidation color
 const RUST_BROWN: egui::Color32 = egui::Color32::from_rgb(139, 69, 19); // Corroded metal
 const SILVER_SHINE: egui::Color32 = egui::Color32::from_rgb(192, 192, 192); // Protective silver
-const CHROME_BLUE: egui::Color32 = egui::Color32::from_rgb(176, 196, 222); // Clean chrome
 
 #[derive(Default)]
 struct RustProof {
@@ -181,7 +180,7 @@ impl eframe::App for RustProof {
 
                 // Encrypt button
                 let encrypt_btn = egui::Button::new(
-                    egui::RichText::new("🛡 Encrypt (Protect)")
+                    egui::RichText::new("🛡 Encrypt (New File)")
                         .color(egui::Color32::from_rgb(40, 40, 50))
                         .strong(),
                 )
@@ -245,7 +244,7 @@ impl eframe::App for RustProof {
                 let btn_width = (width - spacing * 2.0) / 2.0; // equal width for both buttons
                 // Decrypt button
                 let decrypt_btn = egui::Button::new(
-                    egui::RichText::new("🔓 Decrypt (Restore)")
+                    egui::RichText::new("🔓 Decrypt (New File)")
                         .color(egui::Color32::from_rgb(40, 40, 50))
                         .strong(),
                 )
@@ -272,7 +271,7 @@ impl eframe::App for RustProof {
                 }
 
                 let inline_decrypt_btn = egui::Button::new(
-                    egui::RichText::new("🛡 Decrypt (Inplace)")
+                    egui::RichText::new("🔓 Decrypt (Restore)")
                         .color(egui::Color32::from_rgb(40, 40, 50))
                         .strong(),
                 )
